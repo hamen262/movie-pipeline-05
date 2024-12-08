@@ -35,7 +35,7 @@ jobs:
 
       # Chạy tests frontend
       - name: Run Frontend Tests
-        run: npm test -- --coverage
+        run: npm test
         working-directory: starter/frontend
 
       # Build ứng dụng frontend
