@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'starter/backend/**'
   workflow_dispatch:
 
 jobs:
@@ -12,49 +14,42 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
+        
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
-
-      - name: Install pipenv
-        run: |
-          python -m pip install --upgrade pip
-          pip install pipenv
-
+          python-version: '3.x'
+        
       - name: Install dependencies
         run: |
           cd starter/backend
+          pip install pipenv
           pipenv install --dev
-
-      - name: Run linter
+        
+      - name: Run flake8 lint
         run: |
           cd starter/backend
-          pipenv run lint
+          pipenv run flake8 .
 
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
+        
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
-
-      - name: Install pipenv
-        run: |
-          python -m pip install --upgrade pip
-          pip install pipenv
-
+          python-version: '3.x'
+        
       - name: Install dependencies
         run: |
           cd starter/backend
+          pip install pipenv
           pipenv install --dev
-
+        
       - name: Run tests
         run: |
           cd starter/backend
-          pipenv run test
+          pipenv run pytest
+
