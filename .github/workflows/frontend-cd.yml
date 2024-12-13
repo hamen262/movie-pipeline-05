@@ -40,6 +40,7 @@ jobs:
 
       - name: Docker build front end
         run: |
+          cd starter/frontend
           docker build -t frontend .
 
       - name: Tag Docker image
@@ -54,6 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [push-ecr]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
