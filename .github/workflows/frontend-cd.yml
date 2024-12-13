@@ -79,4 +79,3 @@ jobs:
           cd starter/frontend/k8s
           kustomize edit set image frontend=065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
           kustomize build | kubectl apply -f - --validate=false
-
