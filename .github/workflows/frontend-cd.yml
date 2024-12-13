@@ -9,14 +9,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    needs: [lint, test]
-    env:
-      REACT_APP_MOVIE_API_URL: http://localhost:5000
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Build Docker image
+        env:
+          REACT_APP_MOVIE_API_URL: http://localhost:5000
         run: |
           cd starter/frontend
           docker build --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL --tag mp-frontend:latest .
