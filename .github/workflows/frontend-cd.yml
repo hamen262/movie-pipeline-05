@@ -83,14 +83,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-      - name: Log in to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          registry: 065490823891.dkr.ecr.us-east-1.amazonaws.com
-          role-to-assume: arn:aws:iam::065490823891:role/github-action-role
-          role-session-name: github-action-session
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 065490823891.dkr.ecr.us-east-1.amazonaws.com
 
       - name: Tag Docker image
         run: |
