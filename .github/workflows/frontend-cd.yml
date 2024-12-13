@@ -46,6 +46,10 @@ jobs:
         run: |
           docker tag mp-frontend:latest 065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
 
+      - name: Verify Docker image tag
+        run: |
+          docker images 065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
+
       - name: Push Docker image to Amazon ECR
         run: |
           docker push 065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
