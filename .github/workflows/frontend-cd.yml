@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Cache Node.js modules
         uses: actions/cache@v2
@@ -45,7 +45,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Cache Node.js modules
         uses: actions/cache@v2
@@ -74,10 +74,10 @@ jobs:
 
       - name: Build Docker image
         env:
-          REACT_APP_MOVIE_API_URL: http://localhost:5000
+          REACT_APP_MOVIE_API_URL: http://localhost:5000 
         run: |
           cd starter/frontend
-          docker build --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL --tag mp-frontend:latest .
+          docker build --build-arg REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }} -t mp-frontend:latest .
 
       - name: Verify Docker image exists
         run: |
