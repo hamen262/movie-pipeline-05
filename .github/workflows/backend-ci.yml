@@ -53,3 +53,13 @@ jobs:
           cd starter/backend
           pipenv run pytest
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: |
+          cd starter/backend
+          docker build --tag backend:latest .
