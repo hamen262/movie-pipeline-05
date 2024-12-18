@@ -36,7 +36,7 @@ jobs:
 
       - name: Log in to Amazon ECR
         run: |
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 065490823891.dkr.ecr.us-east-1.amazonaws.com
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 406503643825.dkr.ecr.us-east-1.amazonaws.com
 
       - name: Docker build front end
         run: |
@@ -45,11 +45,11 @@ jobs:
 
       - name: Tag Docker image
         run: |
-          docker tag frontend:latest 065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
+          docker tag frontend:latest 406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
 
       - name: Push Docker image to Amazon ECR
         run: |
-          docker push 065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
+          docker push 406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -77,5 +77,5 @@ jobs:
       - name: Deploy to EKS
         run: |
           cd starter/frontend/k8s
-          kustomize edit set image frontend=065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
+          kustomize edit set image frontend=406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
           kustomize build | kubectl apply -f - --validate=false
