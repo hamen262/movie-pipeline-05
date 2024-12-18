@@ -7,8 +7,68 @@ on:
   workflow_dispatch:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: |
+          cd starter/frontend
+          npm ci
+
+      - name: Run linter
+        run: |
+          cd starter/frontend
+          npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: |
+          cd starter/frontend
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd starter/frontend
+          npm test
+
   build:
     runs-on: ubuntu-latest
+    needs: [lint, test]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -18,11 +78,11 @@ jobs:
           REACT_APP_MOVIE_API_URL: http://localhost:5000
         run: |
           cd starter/frontend
-          docker build -t frontend .
+          docker build --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL -t frontend .
 
   push-ecr:
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -38,22 +98,14 @@ jobs:
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 406503643825.dkr.ecr.us-east-1.amazonaws.com
 
-      - name: Docker build front end
-        run: |
-          cd starter/frontend
-          docker build -t frontend .
-
-      - name: Tag Docker image
-        run: |
-          docker tag frontend:latest 406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
-
       - name: Push Docker image to Amazon ECR
         run: |
+          docker tag frontend:latest 406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
           docker push 406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [push-ecr]
+    needs: push-ecr
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
