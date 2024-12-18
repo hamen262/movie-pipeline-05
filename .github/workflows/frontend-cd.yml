@@ -66,13 +66,15 @@ jobs:
           cd starter/frontend
           npm test
 
-   build:
+  build:
     runs-on: ubuntu-latest
     needs: [lint, test]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Build Docker image
+        env:
+          REACT_APP_MOVIE_API_URL: https://a0190e4aca4aa4a6786b394eaaa5b19d-507763273.us-east-1.elb.amazonaws.com/
         run: |
           cd starter/frontend
           docker build --build-arg REACT_APP_MOVIE_API_URL=${{ secrets.REACT_APP_MOVIE_API_URL }} -t frontend .
