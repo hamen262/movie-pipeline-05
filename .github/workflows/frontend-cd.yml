@@ -98,6 +98,11 @@ jobs:
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 406503643825.dkr.ecr.us-east-1.amazonaws.com
 
+      - name: Docker build front end
+        run: |
+          cd starter/frontend
+          docker build -t frontend .
+          
       - name: Push Docker image to Amazon ECR
         run: |
           docker tag frontend:latest 406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
