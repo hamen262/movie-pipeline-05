@@ -6,14 +6,14 @@ function MovieList({ onMovieClick }) {
   const [movies, setMovies] = useState([]);
 
   useEffect(() => {
-    console.log('API URL:', process.env.REACT_APP_MOVIE_API_URL); // Kiểm tra URL
+    console.log('API URL:', process.env.REACT_APP_MOVIE_API_URL);
 
     axios.get(`${process.env.REACT_APP_MOVIE_API_URL}/movies`).then((response) => {
-      setMovies(response.data.movies);
+        setMovies(response.data.movies);
     }).catch((error) => {
-      console.error('Error fetching movies:', error);
+        console.error('Error fetching movies:', error);
     });
-  }, []);
+    }, []);
 
   return (
     <ul>
