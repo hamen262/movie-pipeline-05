@@ -64,3 +64,16 @@ jobs:
         run: |
           cd starter/frontend
           CI=true npm test
+          
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        env:
+          REACT_APP_MOVIE_API_URL: http://localhost:5000
+        run: |
+          cd starter/frontend
+          docker build -t frontend .
