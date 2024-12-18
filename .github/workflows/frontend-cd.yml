@@ -75,7 +75,7 @@ jobs:
 
       - name: Build Docker image
         env:
-          REACT_APP_MOVIE_API_URL: http://localhost:5000
+          REACT_APP_MOVIE_API_URL: https://a0190e4aca4aa4a6786b394eaaa5b19d-507763273.us-east-1.elb.amazonaws.com/
         run: |
           cd starter/frontend
           docker build --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL -t frontend .
@@ -102,7 +102,7 @@ jobs:
         run: |
           cd starter/frontend
           docker build -t frontend .
-          
+
       - name: Push Docker image to Amazon ECR
         run: |
           docker tag frontend:latest 406503643825.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
