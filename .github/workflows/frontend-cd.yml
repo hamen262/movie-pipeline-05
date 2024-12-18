@@ -97,6 +97,13 @@ jobs:
       - name: Log in to Amazon ECR
         run: |
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 406503643825.dkr.ecr.us-east-1.amazonaws.com
+      
+      - name: Build Docker image
+        env:
+          REACT_APP_MOVIE_API_URL: https://a0190e4aca4aa4a6786b394eaaa5b19d-507763273.us-east-1.elb.amazonaws.com/
+        run: |
+          cd starter/frontend
+          docker build --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL -t frontend .
 
       - name: Push Docker image to Amazon ECR
         run: |
