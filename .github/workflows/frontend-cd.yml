@@ -1,4 +1,4 @@
-name: Frontend Continuous Deployment
+name: Backend Continuous Deployment
 
 on:
   push:
@@ -13,58 +13,53 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          node-version: '16'
+          python-version: '3.10'
 
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/starter/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      - name: Upgrade pip and install pipenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv
 
       - name: Install dependencies
         run: |
-          cd starter/frontend
-          npm ci
+          cd starter/backend
+          pipenv --python $(which python3.10)
+          pipenv install --dev
 
-      - name: Run linter
+      - name: Run flake8 lint
         run: |
-          cd starter/frontend
-          npm run lint
+          cd starter/backend
+          pipenv run flake8 .
 
   test:
     runs-on: ubuntu-latest
-    needs: lint
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          node-version: '16'
+          python-version: '3.10'
 
-      - name: Cache Node.js modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/starter/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      - name: Upgrade pip and install pipenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv
 
       - name: Install dependencies
         run: |
-          cd starter/frontend
-          npm ci
+          cd starter/backend
+          pipenv --python $(which python3.10)
+          pipenv install --dev
 
       - name: Run tests
         run: |
-          cd starter/frontend
-          npm test
+          cd starter/backend
+          pipenv run pytest
 
   build:
     runs-on: ubuntu-latest
@@ -72,44 +67,41 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build Docker image
-        env:
-          REACT_APP_MOVIE_API_URL: ${{ secrets.REACT_APP_MOVIE_API_URL }}
-        run: |
-          cd starter/frontend
-          docker build --build-arg REACT_APP_MOVIE_API_URL=${{ secrets.REACT_APP_MOVIE_API_URL }} -t frontend .
-      
-  push-ecr:
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v2
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: us-east-1
 
-        - name: Log in to Amazon ECR
-          run: |
-            (Get-ECRLoginCommand).Password | docker login --username AWS --password-stdin 065490823891.dkr.ecr.us-east-1.amazonaws.com
-        
-        - name: Build Docker image
-          env:
-            REACT_APP_MOVIE_API_URL: https://a0190e4aca4aa4a6786b394eaaa5b19d-507763273.us-east-1.elb.amazonaws.com/
-          run: |
-            cd starter/frontend
-            docker build --build-arg REACT_APP_MOVIE_API_URL=${{ secrets.REACT_APP_MOVIE_API_URL }} -t frontend .
-        - name: Push Docker image to Amazon ECR
-          run: |
-            docker tag frontend:latest 065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
-            docker push 065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
-            
+      - name: Build Docker image
+        run: |
+          cd starter/backend
+          docker build --tag backend:latest .
+
+  push-ecr:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 065490823891.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Tag Docker image
+        run: |
+          docker tag backend:latest 065490823891.dkr.ecr.us-east-1.amazonaws.com/backend:latest
+
+      - name: Push Docker image to Amazon ECR
+        run: |
+          docker push 065490823891.dkr.ecr.us-east-1.amazonaws.com/backend:latest
+
   deploy:
     runs-on: ubuntu-latest
-    needs: push-ecr
+    needs: [push-ecr]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -125,14 +117,13 @@ jobs:
         run: |
           aws eks update-kubeconfig --name cluster --region us-east-1
 
-      - name: Install kubectl
+      - name: Install kustomize
         run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          mv kubectl /usr/local/bin/
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          mv kustomize /usr/local/bin/
 
       - name: Deploy to EKS
         run: |
-          cd starter/frontend/k8s
-          kustomize edit set image frontend=065490823891.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
+          cd starter/backend/k8s
+          kustomize edit set image backend=065490823891.dkr.ecr.us-east-1.amazonaws.com/backend:latest
           kustomize build | kubectl apply -f - --validate=false
