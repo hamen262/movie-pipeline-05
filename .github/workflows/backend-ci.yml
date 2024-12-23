@@ -28,6 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd starter/backend
+          pipenv --python $(which python3.10)
           pipenv install --dev
 
       - name: Run flake8 lint
@@ -54,6 +55,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd starter/backend
+          pipenv --python $(which python3.10)
           pipenv install --dev
 
       - name: Run tests
